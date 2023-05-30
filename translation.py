@@ -1,5 +1,6 @@
 '''This code iterates over the files in the input_files folder which has the contents
-copied from the pendrive and prompts the user to select a pdf file for translation and the file choosen will be transalted to BRL format'''
+copied from the pendrive and prompts the user to select a pdf file for translation and
+ the file choosen will be transalted to BRL format'''
 
 from PyPDF2 import PdfReader
 
@@ -30,17 +31,19 @@ def create_directory():
                 pass
         else:
                 os.mkdir(output_folder_path)
-
+                
 #translate the file selected
 def translation_to_brl():
         # Print each file name
         for file in pdf_files:
                 print(file)
                 #Audio output : Press <key> to translate the file
-                f_var = input("Press 1 to translate the file \n")
-                if(f_var == 'y'):
+                f_var = input("Press 1 to translate the file ")
+                if(f_var == '1'):
                         file_path = os.path.join(input_folder_path,file)
-        #This below code opens a file and reads a file and converts the text into braillie and writes it to a file that is stored in a translation_dir directory
+
+        # This below code opens a file and reads a file and converts the text into braillie and
+        # writes it to a file that is stored in a translation_dir directory
 
         with open(file_path,"rb") as f:
 
@@ -51,7 +54,6 @@ def translation_to_brl():
                 if no_of_pages > 0:
 
                         for page_id in range(no_of_pages):
-
                                 page_obj = pdf.pages[page_id]
 
                                 lines=page_obj.extract_text().splitlines()
@@ -61,7 +63,8 @@ def translation_to_brl():
                                 #print(lines)
 
                                 translated = open("translation_dir"+"/"+"Page_"+str(page_id)+".BRL",'w')
-   for line in lines:
+
+                                for line in lines:
 
                                         translated.write(louis.translateString(tableList,line)+ "\n")
 
@@ -69,7 +72,12 @@ def translation_to_brl():
         return no_of_pages
 
 def convert_to_format(text):
-        binstr = bin(int((ascii(text).replace("\\u28","")).replace("'",""),16))
+        #binstr = bin(int((ascii(text).replace("\\u28","")).replace("'",""),16))
+        temp = ((ascii(text).replace("'","")).replace("\\n","")).split("\\u28")
+        temp = temp[1:]
+        binstr = []
+        for i in temp:
+                binstr.append(int(i, 16))
         return binstr
 
 def translation(no_of_pages):
@@ -78,15 +86,11 @@ def translation(no_of_pages):
                 path = os.path.join(output_folder_path,f_name)
                 with open(path,'r') as file:
                         for line in file:
-                                converted_line = convert_to_ascii(line)
+                                converted_line = convert_to_format(line)
                                 print(converted_line)
-
+                                
 
 #call functions
 create_directory()
 num_of_pages = translation_to_brl()
-translation(num_of_pages)
-
-
-
-
+translation(num_of_pages)                                
