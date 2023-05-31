@@ -28,60 +28,64 @@ pdf_files = [file for file in os.listdir(input_folder_path)]
 tableList = ["unicode.dis","braille-patterns.cti","en-ueb-g1.ctb","en-ueb-math.ctb"]
 
 def create_directory():
-        if os.path.isdir(output_folder_path):
-                pass
-        else:
-                os.mkdir(output_folder_path)
+	if os.path.isdir(output_folder_path):
+		pass
+	else:
+		os.mkdir(output_folder_path)
 
 
 
 #translate the file selected
 def translation_to_brl():
-        # Print each file name
-       for file in pdf_files:
-                print(file)
-                #Audio output : Press <key> to translate the file
-                f_var = input("Press 1 to translate the file ")
-                if(f_var == '1'):
-                        file_path = os.path.join(input_folder_path,file)
+	# Print each file name
+	for file in pdf_files:
+		print(file)
+		#Audio output : Press <key> to translate the file
+		f_var = input("Press 1 to translate the file ")
+		if(f_var == '1'):
+			file_path = os.path.join(input_folder_path,file)
+			break
+		else:
+			pass
+	# This below code opens a file and reads a file and converts the text into braillie and
+	# writes it to a file that is stored in a translation_dir directory
 
-        # This below code opens a file and reads a file and converts the text into braillie and
-        # writes it to a file that is stored in a translation_dir directory
+	with open(file_path,"rb") as f:
 
-        with open(file_path,"rb") as f:
+		pdf = PdfReader(f)
 
-                pdf = PdfReader(f)
+		no_of_pages = len(pdf.pages)
 
-                no_of_pages = len(pdf.pages)
+		if no_of_pages > 0:
 
-                if no_of_pages > 0:
+			for page_id in range(no_of_pages):
 
-                        for page_id in range(no_of_pages):
-                                page_obj = pdf.pages[page_id]
+				page_obj = pdf.pages[page_id]
 
-                                lines=page_obj.extract_text().splitlines()
+				lines=page_obj.extract_text().splitlines()
 
-                                #print("\n","THIS IS PAGE",page_id ,"\n")
+				#print("\n","THIS IS PAGE",page_id ,"\n")
 
-                                #print(lines)
+				#print(lines)
 
-                                translated = open("translation_dir"+"/"+"Page_"+str(page_id)+".BRL",'w')
+				translated = open(output_folder_path+"/"+"Page_"+str(page_id)+".BRL",'w')
 
-                                for line in lines:
+				for line in lines:
+					print(line)
 
-                                        translated.write(louis.translateString(tableList,line)+ "\n")
+					translated.write(louis.translateString(tableList,line)+ "\n")
 
-                                translated.close()
-        return no_of_pages
+				translated.close()
+	return no_of_pages
 
 def convert_to_format(text):
-        #binstr = bin(int((ascii(text).replace("\\u28","")).replace("'",""),16))
-        temp = ((ascii(text).replace("'","")).replace("\\n","")).split("\\u28")
-        temp = temp[1:]
-        binstr = []
-        for i in temp:
-                binstr.append(int(i, 16))
-        return binstr
+	#binstr = bin(int((ascii(text).replace("\\u28","")).replace("'",""),16))
+	temp = ((ascii(text).replace("'","")).replace("\\n","")).split("\\u28")
+	temp = temp[1:]
+	binstr = []
+	for i in temp:
+		binstr.append(int(i, 16))
+	return binstr
 
 ########################################################################################################
 GPIO.setmode(GPIO.BCM)
@@ -117,7 +121,7 @@ def shiftOut(data_pin, clock_pin, order, value):
         bit_order = range(8)
     for bit in bit_order:
         GPIO.output(data_pin, (value >> bit) & 1)
-       GPIO.output(clock_pin, GPIO.HIGH)
+        GPIO.output(clock_pin, GPIO.HIGH)
         time.sleep(0.001)
         GPIO.output(clock_pin, GPIO.LOW)
         time.sleep(0.001)
@@ -149,14 +153,14 @@ def map(data)->int:
       data_mapped |= ((data>>i)&1)<<map_array[i]
     return data_mapped
 
-def cell_write(inp):
-        for i in inp:
-            in_r = int(i)
-            in_l = int(i)
+def cell_write(in_r, in_l):
+            #in_r = int(i)
+            #in_l = int(i)
             in_r = map(in_r)
             in_l = map(in_l)
             in_l = swap(0, 1, in_l)
             in_l = swap(2, 3, in_l)
+
             GPIO.output(strobe_l, GPIO.LOW)
             shiftOut(data_l, clk, 'LSBFIRST', in_r)
             shiftOut(data_l, clk, 'LSBFIRST', in_l)
@@ -174,22 +178,36 @@ def cell_write(inp):
               time.sleep(0.015)
               GPIO.output(oe_l, GPIO.HIGH)
               GPIO.output(oe_r, GPIO.HIGH)
-            time.sleep(2)
+            time.sleep(7)
 ########################################################################################################
 
 def translation(no_of_pages):
-        for i in range(0,no_of_pages):
-                f_name = f"Page_{i}.BRL"
-                path = os.path.join(output_folder_path,f_name)
-                with open(path,'r') as file:
-                        for line in file:
-                                converted_line = convert_to_format(line)
-                                print(converted_line)
-                                cell_write(converted_line)
+	for i in range(0,no_of_pages):
+		f_name = f"Page_{i}.BRL"
+		path = os.path.join(output_folder_path,f_name)
+		with open(path,'r') as file:
+			for line in file:
+				converted_line = convert_to_format(line)
+				print(converted_line)
+				flag = 0
+				for i in range(len(converted_line)):
+					if flag:
+						flag = 0
+						continue
+					if converted_line[i] == 32 or converted_line[i] == 60 or converted_line[i] == 16:
+						flag = 1
+						cell_write(converted_line[i+1], converted_line[i])
+					else:
+						cell_write(converted_line[i], 0)
 
 
 #call functions
-create_directory()
-num_of_pages = translation_to_brl()
-translation(num_of_pages)
-GPIO.cleanup()
+def braille_reader():
+	create_directory()
+	num_of_pages = translation_to_brl()
+	translation(num_of_pages)
+
+try:
+	braille_reader()
+finally:
+	GPIO.cleanup()
