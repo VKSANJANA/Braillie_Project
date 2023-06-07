@@ -1,8 +1,13 @@
-from machine import Pin
+from machine import Pin, freq
 from time import time
 
+freq(133000000)
 
-power = Pin(21, Pin.IN)
+led = Pin(25, Pin.OUT)
+led.on()
+
+
+power = Pin(21, Pin.IN, Pin.PULL_UP)
 pi_zero = Pin(20, Pin.OUT)
 fet = Pin(22, Pin.OUT)
 
@@ -26,6 +31,9 @@ def power_control():
                 pass
             fet.off()
             status = 1
+            time_then = time()
+            while (time() - time_then) < 10:
+                pass
 
 while True:
     power_control()
