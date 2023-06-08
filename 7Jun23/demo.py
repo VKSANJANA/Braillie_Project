@@ -9,8 +9,13 @@ import RPi.GPIO as GPIO
 import time
 import multiprocessing
 from blu_os import audio
+from hmi import HMI
+
 a = audio()
 a.say("Braille translation initiated")
+
+hmi = HMI()
+
 # Directory
 directory = "translation_dir"
 
@@ -191,9 +196,12 @@ def translation(no_of_pages,line_list):
 				converted_line = convert_to_format(line)
 				print(converted_line)
 				flag = 0
-				for i in range(len(converted_line)):
+				# loop variable
+				i = 0
+				while i>=0 and i<len(converted_line):
 					if flag:
 						flag = 0
+						i = i+1
 						continue
 					if converted_line[i] == 32 or converted_line[i] == 60 or converted_line[i] == 16:
 						flag = 1
@@ -208,9 +216,22 @@ def translation(no_of_pages,line_list):
 						cell_write(converted_line[i], 0)
 						a.say(line_list[j])
 					#if converted_line[i]:
-					j = j + 1
-					print(j)
-					time.sleep(4)
+					back = True
+					front = True
+					while back and front:
+						back = hmi.read_input()[2]
+						front = hmi.read_input()[3]
+					if not front:
+						i = i+1
+						j = j+1
+						print(" i = " + str(i))
+					elif not back:
+						i = i-1
+						if converted_line[i-1] == 32 or converted_line[i] == 60 or converted_line[i] == 16:
+                                                        i = i-1
+						j = j-1
+						print(" i = " + str(i))
+						
 
 '''def audio_reader(file_path):
 	with open(file_path,"rb") as f:
