@@ -5,6 +5,9 @@ import subprocess
 import time
 import os
 from pathlib import Path
+from hmi import HMI
+
+hmi = HMI()
 
 a = audio()
 a.say("Welcome, Please insert the pendrive")
@@ -83,29 +86,35 @@ def copy():
 		print("No pdf or text files found")
 	else:
 		#print the file paths
+		a.say("Press OK to copy and cancel to skip copy the file:")
 		for path in file_paths:
 			file = path.split('/')     #converting string into a list to pr$
 			name = file[3:]
-			a.say("Press 1 to copy " + str(name))
+			a.say(str(name))
 			print("Press 1 to copy the file: " + str(name))
-			var = input()
-			if(var == '1'):
+			yes = True
+			while yes:
+				yes = hmi.read_input()[4]
+				if not hmi.read_input()[5]:
+					break
+			if not yes:
 				check_folder()
 				copy_files(path,des_path)
-			else:
-				a.say("No file to copy")
-				print("No file to copy")
 ########################################################################
 
 #unmount the pendrive
 def unmount():
-	a.say("Press 1 to remove the pendrive or press any key not to proceed")
-	print("Press 1 to remove the pendrive or press any key not to proceed")
-	var = input()
+	a.say("Press OK to remove pendrive and cancel to continue")
+	print("Press OK to remove pendrive and cancel to continue")
 	UNMOUNT_COMMAND = ["sudo","umount",MOUNT_POINT]
-	if(var == '1'):
-		subprocess.check_call(UNMOUNT_COMMAND)
-		a.say("Pendrive ejected succesfully")
+
+	yes =  True
+	while yes:
+		yes = hmi.read_input()[4]
+		if not hmi.read_input()[5]:
+			return
+	subprocess.check_call(UNMOUNT_COMMAND)
+	a.say("Pendrive ejected succesfully")
 
 ## main function
 def main_detect():
