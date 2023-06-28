@@ -14,11 +14,9 @@ uart = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1))
 power = Pin(21, Pin.IN, Pin.PULL_UP)
 pi_zero = Pin(20, Pin.OUT)
 fet = Pin(22, Pin.OUT)
-sig = Pin(2, Pin.OUT)
 
 fet.on()
 pi_zero.on()
-sig.off()
 
 status = 0
 flag_adc = 0
@@ -34,7 +32,7 @@ def delay(period):
 def shut_down():
     global status
     print("shutdown")
-    pi_zero.off()   
+    signal('2\0')   
     delay(90)
     fet.off()
     status = 1
@@ -68,40 +66,19 @@ def core_two():
         power_control()
 
 def signal(word):
-    sig.on()
+    pi_zero.on()
     delay(0.5)
-    sig.off()
+    pi_zero.off()
     uart.write(word)
     delay(0.1)
 
-'''
-def read_adc():
-    global flag_adc
-    sig.off()
-    while True:
-        level = battery.read_u16()
-        level_analog = level*3.3/65535
-        print(str(level) + ' ' + str(level_analog))
-        if level_analog == 50:              # at 50 %
-            signal('50\0')
-        elif level_analog == 25:
-            signal('25\0')
-        elif level_analog == 15:
-            signal('15\0')
-        elif level_analog < 2.7 and not status:
-            signal('5\0')
-            delay(5)
-            flag_adc = 1
-            shut_down()
-        else:
-            flag_adc = 0
-        delay(5)
-'''
 def poll_battery():
     level = battery1.read_u16()
     level_analog1 = level*3.3/65535
     level = battery2.read_u16()
     level_analog2 = level*3.3/65535
+    print("Level analog1 = ",level_analog1)
+    print("Level analog2 = ",level_analog2)
     if level_analog1 < level_analog2:
         return level_analog1
     else:
@@ -115,7 +92,7 @@ def read_adc():
     level = milestone
     while True:
         level_analog = poll_battery()
-        print(level_analog)
+        #print(level_analog)
         if len(ch) == 1:
             ch = charge
             level = milestone
