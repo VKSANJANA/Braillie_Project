@@ -7,7 +7,8 @@ freq(133000000)
 led = Pin(25, Pin.OUT)
 led.on()
 
-battery = ADC(28)
+battery1 = ADC(28)
+battery2 = ADC(27)
 uart = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1))
 
 power = Pin(21, Pin.IN, Pin.PULL_UP)
@@ -95,15 +96,23 @@ def read_adc():
             flag_adc = 0
         delay(5)
 '''
+def poll_battery():
+    level = battery1.read_u16()
+    level_analog1 = level*3.3/65535
+    level = battery2.read_u16()
+    level_analog2 = level*3.3/65535
+    if level_analog1 < level_analog2:
+        return level_analog1
+    else:
+        return level_analog2
 
 def read_adc():
     global flag_adc
     global milestone
     level = milestone
     while True:
-        level = battery.read_u16()
-        level_analog = level*3.3/65535
-        print(str(level) + ' ' + str(level_analog))
+        level_analog = poll_battery()*100/5
+        print(level_analog)
         if not len(level):
             level = milestone
             flag_adc = 1
