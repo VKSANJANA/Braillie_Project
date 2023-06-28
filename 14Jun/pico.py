@@ -22,6 +22,7 @@ sig.off()
 
 status = 0
 flag_adc = 0
+charge = [3, 2.8, 2.7, 2.6]
 milestone = [50, 25, 15, 5]
 
 def delay(period):
@@ -109,18 +110,22 @@ def poll_battery():
 def read_adc():
     global flag_adc
     global milestone
+    global charge
+    ch = charge
     level = milestone
     while True:
-        level_analog = poll_battery()*100/5
+        level_analog = poll_battery()
         print(level_analog)
-        if not len(level):
+        if not len(ch):
+            ch = charge
             level = milestone
             flag_adc = 1
             shut_down()
-        if level_analog <= level[0]:
+        if level_analog <= ch[0]:
             signal((str(level[0])+'\0'))
             level.pop(0)
-        if flag_adc and level_analog > 10: # above 10 percent
+            ch.pop(0)
+        if flag_adc and level_analog > 2.7: # above 10 percent
             flag_adc = 0
 
 
