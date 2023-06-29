@@ -7,7 +7,7 @@ freq(133000000)
 led = Pin(25, Pin.OUT)
 led.on()
 
-battery1 = ADC(28)
+battery1 = ADC(26)
 battery2 = ADC(27)
 uart = UART(0, baudrate=9600, tx=Pin(0), rx=Pin(1))
 
