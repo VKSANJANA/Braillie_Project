@@ -67,7 +67,7 @@ except KeyboardInterrupt:
 '''
 '''
 hmi = HMI()
-GPIO.add_event_detect(13, GPIO.FALLING, callback=hmi.isr_hmi, bouncetime=2)
+GPIO.add_event_detect(13, GPIO.FALLING, callback=hmi.long_press, bouncetime=2)
 
 ok = True 
 back = True
