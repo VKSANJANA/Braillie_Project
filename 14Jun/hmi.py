@@ -7,12 +7,12 @@ GPIO.setup(13, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 class HMI():
 
-	left = 4
-	right = 5
-	up = 2
-	down = 3
-	ok = 6
-	back = 7
+	left = 5
+	right = 4
+	up = 7
+	down = 6
+	ok = 3
+	back = 2
 	trigger = 'n'
 	long_press = True
 
@@ -44,14 +44,14 @@ class HMI():
         	                self.key_pressed = key_status[+2]
 				
 	def long_press(self, pin):
-		self.stat = read_input()
+		self.stat = self.read_input()
 		if not stat[self.ok] or not stat[self.back]:
 			time_start = time.time()
-			while time.time() - time_start < 5:
+			while time.time() - time_start < 2:
 				pass
-			if not read_input()[self.ok]:
+			if not self.read_input()[self.ok]:
 				self.trigger = 'r'
-			elif not read_input()[self.back]:
+			elif not self.read_input()[self.back]:
 				self.trigger = 'a'
 			else:
 				self.long_press = False
