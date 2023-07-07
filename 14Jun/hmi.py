@@ -69,22 +69,28 @@ except KeyboardInterrupt:
 hmi = HMI()
 GPIO.add_event_detect(13, GPIO.FALLING, callback=hmi.long_press, bouncetime=2)
 
-ok = True 
+ok = True
 back = True
 try:
-	print('press okay to continue and back to exit')
-	while ok and back:
-		if not hmi.long_press:
-			ok = hmi.stat[hmi.ok]
-			back = hmi.stat[hmi.back]
-			hmi.long_press = True
-		else:
-			if hmi.trigger == 'r':
-				pass # read time
-				hmi.trigger = 'n'
-			elif hmi.trigger == 'a':
-				pass # read adc
-				hmi.trigger = 'n'
-			else:
-				pass
+        print('press okay to continue and back to exit')
+        while ok and back:
+                if not hmi.long_press:
+                        ok = hmi.stat[hmi.ok]
+                        back = hmi.stat[hmi.back]
+                        hmi.long_press = True
+                else:
+                        if hmi.trigger == 'r':
+                                print('time') # read time
+                                hmi.trigger = 'n'
+                        elif hmi.trigger == 'a':
+                                print('adc') # read adc
+                                hmi.trigger = 'n'
+                        else:
+                                pass
+        if not ok:
+                print('OK')
+        elif not back:
+                print('cancel')
+except KeyboardInterrupt:
+        GPIO.cleanup()
 '''
